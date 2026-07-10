@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sensor Monitor</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 20px; background: #f0f2f5; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); max-width: 400px; margin: 0 auto; }
+        h1 { margin-top: 0; font-size: 1.5rem; color: #333; }
+        .reading { font-size: 2.5rem; font-weight: bold; color: #0070f3; margin: 15px 0; }
+        .timestamp { font-size: 0.85rem; color: #666; }
+        .badge { display: inline-block; padding: 4px 8px; border-radius: 20px; font-size: 0.75rem; background: #e2e8f0; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <span class="badge" id="status">Connecting...</span>
+        <h1>Live Sensor Data</h1>
+        <div class="reading" id="metric">--</div>
+        <div class="timestamp" id="time">Waiting for data...</div>
+    </div>
+
+    <script>
+        const statusBadge = document.getElementById('status');
+        const metricDisplay = document.getElementById('metric');
+        const timeDisplay = document.getElementById('time');
+
+        // Connect to the scratch server's SSE endpoint
+        const eventSource = new EventSource('http://localhost:3000/events');
+
+        eventSource.onopen = () => {
+            statusBadge.textContent = 'Live Connected';
+            statusBadge.style.background = '#e1f5fe';
+            statusBadge.style.color = '#0288d1';
+        };
+
+        eventSource.onmessage = (event) => {
+            const parsedData = JSON.parse(event.data);
+            
+            // Ignore the initial connection handshake message
+            if (parsedData.status === 'connected') return;
+
+            // Update UI dynamically with raw data
+            if(parsedData.value !== undefined) {
+                metricDisplay.textContent = `${parsedData.value}°C`;
+                timeDisplay.textContent = `Last update: ${new Date().toLocaleTimeString()}`;
+            }
+        };
+
+        eventSource.onerror = () => {
+            statusBadge.textContent = 'Disconnected / Retrying...';
+            statusBadge.style.background = '#ffebee';
+            statusBadge.style.color = '#c62828';
+        };
+    </script>
+</body>
+</html>
