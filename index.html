@@ -28,7 +28,7 @@
         const timeDisplay = document.getElementById('time');
 
         // Connect to the scratch server's SSE endpoint
-        const eventSource = new EventSource('http://localhost:3000/events');
+        const eventSource = new EventSource('https://sensor-backend-wei2.onrender.com/events');
 
         eventSource.onopen = () => {
             statusBadge.textContent = 'Live Connected';
